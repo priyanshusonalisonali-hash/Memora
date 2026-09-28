@@ -1,7 +1,7 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { DraftDocument, PhotoItem } from '../types/index.js';
 
-export interface IDraft extends Document, Omit<DraftDocument, 'id'> {
+export interface IDraft extends Omit<DraftDocument, 'id'> {
   _id: string;
 }
 
@@ -25,7 +25,11 @@ const DraftSchema = new Schema<IDraft>({
   photos: { type: [PhotoSchema], default: [] },
   letter: { type: String, default: '' },
   lockUntilMidnight: { type: Boolean, default: false },
-  status: { type: String, enum: ['draft', 'preview', 'paid'], default: 'draft' },
+  status: {
+    type: String,
+    enum: ['draft', 'preview', 'paid'],
+    default: 'draft'
+  },
   utm: {
     source: String,
     medium: String,
@@ -38,10 +42,12 @@ const DraftSchema = new Schema<IDraft>({
   toJSON: {
     virtuals: true,
     transform: (_, ret) => {
-      ret.id = ret._id;
-      delete ret._id;
-      delete ret.__v;
-      return ret;
+      const obj = ret as any;
+      obj.id = obj._id;
+
+      const { _id, __v, ...cleanRet } = obj;
+
+      return cleanRet;
     },
   },
 });

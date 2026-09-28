@@ -1,7 +1,7 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { OrderDocument } from '../types/index.js';
 
-export interface IOrder extends Document, Omit<OrderDocument, 'id'> {
+export interface IOrder extends Omit<OrderDocument, 'id'> {
   _id: string;
 }
 
@@ -13,17 +13,23 @@ const OrderSchema = new Schema<IOrder>({
   paymentId: { type: String },
   amount: { type: Number, required: true },
   currency: { type: String, required: true, default: 'INR' },
-  status: { type: String, enum: ['created', 'paid', 'failed'], default: 'created' },
+  status: {
+    type: String,
+    enum: ['created', 'paid', 'failed'],
+    default: 'created'
+  },
   contact: { type: String },
 }, {
   timestamps: true,
   toJSON: {
     virtuals: true,
     transform: (_, ret) => {
-      ret.id = ret._id;
-      delete ret._id;
-      delete ret.__v;
-      return ret;
+      const obj = ret as any;
+      obj.id = obj._id;
+
+      const { _id, __v, ...cleanRet } = obj;
+
+      return cleanRet;
     },
   },
 });
